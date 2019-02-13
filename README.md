@@ -17,7 +17,11 @@ archives.sh.
 Voici comment est le crontab :
 
 42  5  * *  * /path/to/counter_directory/counter_stat.py
+
 42  6  * *  * /path/to/counter_directory/counter_post.py stat
+
 42 18  * *  * /path/to/counter_directory/counter.py
+
 42 19  * *  * /path/to/counter_directory/counter_post.py
+
 42  7  2 *  * /path/to/counter_directory/archives.sh
