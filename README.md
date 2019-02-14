@@ -11,6 +11,8 @@ nuit a fait le tour de la planète par le biais de la commande counter.py,
 puis il publie ces comptes à 19:42 (heure de Paris) par le biais de la
 commande counter_post.py.
 
+### Le profil du compteur sur le forum doit être réglé sur UTC.
+
 Un archivages des logs est effectué tous les mois par le biais de la commande
 archives.sh.
 
