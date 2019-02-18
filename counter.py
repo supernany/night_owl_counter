@@ -39,6 +39,7 @@ TZPATH = '/usr/share/zoneinfo/'
 
 def main(urlfile, files, blackfile):
 
+    PUB_BLACK = False
     TODAY = datetime.date.today()
     # TODAY = datetime.date(2015, 8, 13)
     YESTERDAY = TODAY + datetime.timedelta(days=-1)
@@ -98,19 +99,25 @@ def main(urlfile, files, blackfile):
                 else:
                     user.tz = tzpost
             # recherche de « [blacklistme] » dans le message
+            stridname = str(user.id) + ';' + user.name
             if '[blacklistme]' in post.msg.lower():
                 log('ajout éventuel de {0} à la blacklist'.format(user.name))
-                black.Add(str(user.id) + ';' + user.name)
+                if stridname not in black.list:
+                    log('demande de publication de la blacklist')
+                    PUB_BLACK = True
+                black.Add(stridname)
             # recherche de « [unblacklistme] » dans le message
             if '[unblacklistme]' in post.msg.lower():
                 log('retrait éventuel de {0} de la blacklist'.format(
                     user.name, user.id))
-                black.Del(str(user.id) + ';' + user.name)
+                if stridname in black.list:
+                    log('demande de publication de la blacklist')
+                    PUB_BLACK = True
+                black.Del(stridname)
             # recherche de « [razme] » dans le message
             if '[razme]' in post.msg.lower():
                 log('retrait éventuel du score de {0}'.format(
                     user.name, user.id))
-                content = ''
                 for scorefile in files:
                     fscore = open(FILESPATH + scorefile, 'r')
                     lines = fscore.readlines()
@@ -246,6 +253,9 @@ def main(urlfile, files, blackfile):
             f.close()
             flog.close()
         renderpost(FILESPATH + scorefile)
+    if TODAY.day == 2:
+        PUB_BLACK = True
+        log('demande de publication mensuelle de la blacklist')
     fp = open(POSTFILE, 'r')
     msg = fp.read()
     fp.close()
@@ -256,6 +266,13 @@ def main(urlfile, files, blackfile):
         fp.write(str(score.num).rjust(3) + '    ' + score.name + '\n')
     fp.write('[/code]\n')
     fp.write(msg)
+    if PUB_BLACK:
+        fp.write('Les membres suivants sont ignorés :\n')
+        fp.write('[code]\n')
+        for stridname in black.list:
+            print stridname.split(';')[1]
+            fp.write(stridname.split(';')[1] + '\n')
+        fp.write('[/code]')
     fp.close()
 
     log('fin\n                  ‾‾‾\n')
