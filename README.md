@@ -12,6 +12,7 @@ puis il publie ces comptes à 19:42 (heure de Paris) par le biais de la
 commande counter_post.py.
 
 ### Le profil du compteur sur le forum doit être réglé sur UTC sans heure d’été.
+**Les autres paramètres du profil doivent être laissés par défaut.**
 
 Un archivages des logs est effectué tous les mois par le biais de la commande
 archives.sh.
