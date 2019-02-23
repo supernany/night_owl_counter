@@ -64,6 +64,17 @@ def main(urlfile, files, blackfile):
     browser = forum.getBrowser()
     forum.log_in(browser, FORUM_URL)
 
+    # vérification des pseudos de la blacklist
+    for stridname in black.list:
+        oname = stridname.split(';')[1]
+        if stridname.split(';')[0] != '1714901':
+            purl = FORUM_URL + 'profile.php?id=' + stridname.split(';')[0]
+            page = forum.getPage(browser, purl)
+            nname = page.find('dd').renderContents()
+            if nname != oname:
+                black.Del(stridname)
+                black.Add(stridname.split(';')[0] + ';' + nname)
+
     log('parcours des pages')
     while True:
         log(url)
