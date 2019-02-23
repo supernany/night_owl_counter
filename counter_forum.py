@@ -127,7 +127,7 @@ def search_TdCT(browser, f_url):
             t_url = t_url.replace(str_p, str(int_p))
             log(t_url)
             url = f_url + t_url
-            if check_url(url, f_url, t_url):
+            if check_url(browser, url, f_url, t_url):
                 break
     if url == '':
         log('échec : arrêt du script')
