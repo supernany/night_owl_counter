@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# encoding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # bibliothèque de fonctions pour naviguer dans le forum
-# nécessite python 2.4 minimum et python-mechanicalsoup.
+# nécessite python 3 minimum et python3-mechanicalsoup.
 
 
 from counter_path import LOGFILE, POSTFILE, FILESPATH, FORUM_URL, TOPIC_URL
@@ -30,7 +30,8 @@ def getPage(browser, url):
         try:
             browser.open(url)
             page = browser.get_current_page()
-            if 'Error / FluxBB' in page.title.renderContents():
+            # print(page.title.renderContents())
+            if b'Error / FluxBB' in page.title.renderContents():
                 log('Erreur FluxBB')
                 sleep(10)
                 continue
@@ -58,7 +59,8 @@ def log_in(browser, forum_url):
 
     page = getPage(browser, url_index)
     welcome = page.find('div', id='brdwelcome')
-    if welcome.findAll('a')[-1].renderContents() == 'Déconnexion':
+    wlink = welcome.findAll('a')[-1].renderContents().decode('utf8')
+    if wlink == 'Déconnexion':
         log('connexion effectuée')
     else:
         log('erreur lors de la connexion')
@@ -73,7 +75,8 @@ def log_out(browser, forum_url):
         browser.follow_link(disconnect)
         browser.open(pindex)
         welcome = browser.get_current_page().findAll('fieldset')[-1]
-        if welcome.findAll('a')[-1].renderContents() == 'inscription':
+        wlink = welcome.findAll('a')[-1].renderContents().decode('utf8')
+        if wlink == 'inscription':
             log('déconnexion effectuée')
         else:
             log('erreur lors de la déconnexion')
@@ -84,7 +87,8 @@ def log_out(browser, forum_url):
 
 def numpage(page):
 
-    return page.find('p', 'pagelink conl').strong.renderContents()
+    return page.find(
+        'p', 'pagelink conl').strong.renderContents().decode('utf8')
 
 
 def pagelinks(page):
@@ -102,12 +106,12 @@ def islastpage(page):
 
     num = numpage(page)
     links = pagelinks(page)
-    if len(links) > 0:
+    if len(links) > 0 and len(links) != 2:
         if int(links[-1]['href'].split('p=')[-1]) > int(num):
             return False
         else:
             return True
-    else:
+    elif len(links) == 2 and num > 1:
         return True
 
 
@@ -120,7 +124,7 @@ def search_TdCT(browser, f_url):
     for td in st.findAll('td', 'tcl'):
         if td.find('span', 'stickytext'):
             t_url = td.findAll('a')[-1]['href']
-            str_p = td.findAll('a')[-1].renderContents()
+            str_p = td.findAll('a')[-1].renderContents().decode('utf8')
             int_p = int(str_p) - 10
             if int_p < 1:
                 int_p = 1
@@ -131,8 +135,8 @@ def search_TdCT(browser, f_url):
                 break
     if url == '':
         log('échec : arrêt du script')
-        print 'le script s’est arrêté suite à une erreur'
-        print 'détail des opérations dans', LOGFILE
+        print('le script s’est arrêté suite à une erreur')
+        print('détail des opérations dans', LOGFILE)
         exit()
 
     return url
@@ -156,7 +160,8 @@ def check_url(browser, url, f_url, t_url):
         firstlinks = firstpost.findAll('a')
         if len(firstlinks) > 0:
             for link in firstlinks:
-                if 'topic des couche-tard' in link.renderContents():
+                if 'topic des couche-tard' in str(
+                        link.renderContents().decode('utf8')):
                     return True
         else:
             log('mauvaise url')
@@ -174,13 +179,13 @@ def next(page, url):
     else:   # sinon, on est à la dernière page :
             # on vérifie alors si le sujet est fermé,
             # auquel cas on renvoie le dernier lien fourni sur la page
-        resp = page.find('p', 'postlink conr').renderContents()
+        resp = page.find('p', 'postlink conr').renderContents().decode('utf8')
         if resp == 'Discussion fermée':
             for postmsg in page.findAll('div', 'postmsg'):
                 if postmsg.find('a'):
                     nextpage = postmsg.findAll('a')[-1]['href']
                     t_url = nextpage.split('/')[-1]
-                    print t_url
+                    print(t_url)
                     url = FORUM_URL + t_url
             log('nouveau topic :')
         else:
@@ -205,7 +210,7 @@ def post(browser, postfile, urlfile):
     fu.close()
     log(url)
     page = getPage(browser, url)
-    resp = page.find('p', 'postlink conr').renderContents()
+    resp = page.find('p', 'postlink conr').renderContents().decode('utf8')
     if resp == 'Discussion fermée':
         url = search_TdCT(browser, FORUM_URL)
     browser.open(url)

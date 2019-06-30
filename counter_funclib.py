@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # bibliothèque des fonctions du compteur
-# nécessite python 2.4 minimum et python-dateutil.
+# nécessite python 3 minimum et python3-dateutil.
 
 
 from counter_path import LOGFILE, POSTFILE, LOGPATH, FILESPATH
@@ -21,12 +21,14 @@ tzFrance = 'Europe/Paris'
 def DateTimePost(dt):
 
     if ', ' in dt:
-        dt = dt.split('Le ')[1].split(', à ')
+        dt = [dt.split(' ')[1].split(',')[0],
+              dt.split(' ')[-1].split('\'')[0]]
     else:
-        dt = dt.split(' ')
-    if dt[0].lower() == 'hier':
+        dt = [dt.split(' ')[0],
+              dt.split(' ')[-1].split('\'')[0].split('"')[0]]
+    if 'hier' in dt[0].lower():
         d = date.today() + timedelta(days=-1)
-    elif dt[0].lower() == 'aujourd\'hui':
+    elif 'aujourd\'hui' in dt[0].lower():
         d = date.today()
     else:
         d = datetime.strptime(dt[0], '%d/%m/%Y').date()
@@ -74,12 +76,12 @@ def renderpost(_file):
     title = (((_file == FILESPATH + 'count_TdCT') and
               'Scores totaux de la seconde guerre') or
              'Scores du mois en cours')
-    msg = title + ' :\n[code]\n' + '\xe2\x80\xad'
+    msg = title + ' :\n[code]\n' + b'\xe2\x80\xad'.decode('utf8')
     fs = open(_file, 'r')
     scores = fs.readlines()
     for i in range(len(scores)):  # on veut toutes les lignes restantes
-        score = re.compile('\s*').split(scores[i], 3)[1:]
-        precnum = re.compile('\s*').split(scores[i-1])[1]
+        score = re.split('\s+', scores[i], 3)[1:]
+        precnum = re.split('\s+', scores[i-1])[1]
         num = score[0]
         Id = score[1]
         name = score[2]
@@ -92,7 +94,7 @@ def renderpost(_file):
             tmpRange = i
         # et on ajoute la ligne avec le bon rang a l'entrée
         if '\xe2\x80\xae' in scores[i-1]:
-            msg += '\xe2\x80\xac'
+            msg += b'\xe2\x80\xac'.decode('utf8')
         if Id == '7666':
             msg += '*** Vétéran des couche-tard, héros de la première'
             msg += ' guerre, invaincu avant retraite ***\n'

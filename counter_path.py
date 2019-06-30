@@ -1,16 +1,16 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # bibliothèque des chemins pour le compteur + url du forum
-# nécessite python 2.4 minimum.
+# nécessite python 3 minimum.
 
 import os
 import sys
-from datetime import date, datetime
+from datetime import date
 
 FORUM_URL = 'https://forum.ubuntu-fr.org/'
 TOPIC_URL = 'viewtopic.php'

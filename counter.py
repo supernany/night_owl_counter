@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # license GPL V3 or later
@@ -12,7 +12,7 @@
 # peut aussi servir si le serveur n'est plus là
 # pour assurer le service un jour.
 
-# nécessite python 2.4 minimum et python-dateutil.
+# nécessite python 3.6 minimum et python3-dateutil.
 
 # le fichier './files/.counter_logins' doit contenir
 # le login du posteur sur la première ligne,
@@ -33,7 +33,7 @@ from dateutil.tz import *
 import re
 import os
 
-DEBUG = False
+DEBUG = True
 TZPATH = '/usr/share/zoneinfo/'
 
 
@@ -63,14 +63,14 @@ def main(urlfile, files, blackfile):
 
     browser = forum.getBrowser()
     forum.log_in(browser, FORUM_URL)
-
     # vérification des pseudos de la blacklist
     for stridname in black.list:
         oname = stridname.split(';')[1]
         if stridname.split(';')[0] != '1714901':
             purl = FORUM_URL + 'profile.php?id=' + stridname.split(';')[0]
             page = forum.getPage(browser, purl)
-            nname = page.find('dd').renderContents()
+            nname = str(page.find('dd').renderContents().decode('utf8'))
+            nname = nname.split('\'')[-1]
             if nname != oname:
                 black.Del(stridname)
                 black.Add(stridname.split(';')[0] + ';' + nname)
@@ -129,6 +129,7 @@ def main(urlfile, files, blackfile):
             if '[razme]' in post.msg.lower():
                 log('retrait éventuel du score de {0}'.format(
                     user.name, user.id))
+                content = ''
                 for scorefile in files:
                     fscore = open(FILESPATH + scorefile, 'r')
                     lines = fscore.readlines()
@@ -206,7 +207,7 @@ def main(urlfile, files, blackfile):
 
         for line in lines:
             if line not in [' ', '']:
-                line_tuple = re.compile('\s*').split(line)[1:-1]
+                line_tuple = re.split('\s+', line)[1:]
                 line_num = line_tuple[0]
                 line_id = line_tuple[1]
                 line_name = ' '.join(line_tuple[2:])
@@ -236,8 +237,8 @@ def main(urlfile, files, blackfile):
                             '⇒', str(score.num)]))
                         break
                     if score is scores[-1]:
-                        log(' '.join(['nouveau membre :', name, '→', str(num),
-                            'points']))
+                        log(' '.join(['nouveau membre :', name, '→',
+                            str(num), 'points']))
                         new_scores.append(Score([num, entry, name]))
                         break
 
@@ -266,22 +267,20 @@ def main(urlfile, files, blackfile):
         renderpost(FILESPATH + scorefile)
     if TODAY.day == 2:
         PUB_BLACK = True
-        log('demande de publication mensuelle de la blacklist')
     fp = open(POSTFILE, 'r')
     msg = fp.read()
     fp.close()
     fp = open(POSTFILE, 'w')
-    fp.write('Points marqués la nuit passée :\n[code]\n')
+    fp.write('Points marqués la nuit passée :\n[code]\n')
     night_scores.sort(reverse=True)
     for score in night_scores:
         fp.write(str(score.num).rjust(3) + '    ' + score.name + '\n')
     fp.write('[/code]\n')
     fp.write(msg)
     if PUB_BLACK:
-        fp.write('Les membres suivants sont ignorés :\n')
+        fp.write('\nLes membres suivants sont ignorés :\n')
         fp.write('[code]\n')
         for stridname in black.list:
-            print stridname.split(';')[1]
             fp.write(stridname.split(';')[1] + '\n')
         fp.write('[/code]')
     fp.close()
