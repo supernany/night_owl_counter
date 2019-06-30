@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # bibliothèque des classes du compteur
-# nécessite python 2.4 minimum.
+# nécessite python 3.6 minimum.
 
 
 from counter_path import LOGFILE, LOGPATH, FILESPATH, FORUM_URL, TOPIC_URL
@@ -62,7 +62,7 @@ class Day:
 
     def __str__(self):
         for entry in self.entries.items():
-            print entry, '+', entries[entry][1]
+            print(entry, '+', entries[entry][1])
 
 
 class Score:
@@ -91,11 +91,12 @@ class User:
             elif self.id == 1205721:
                 self.name = '<2029><2028>'
             else:
-                self.name = HtmlToText(str(postleft.find('a').renderContents())
-                                       )
+                self.name = HtmlToText(
+                    str(postleft.find('a').renderContents().decode('utf8')))
         else:
             self.id = 0
-            self.name = HtmlToText(str(postleft.strong.renderContents()))
+            self.name = HtmlToText(
+                str(postleft.strong.renderContents().decode('utf8')))
         self.posts = []
         self.tz = tzFrance
         self.points = 0
@@ -136,10 +137,10 @@ class Post:
             for code in post.findAll('div', 'codebox'):
                 code.extract()
 
-        self.msg = post.find('div', 'postmsg').renderContents()
+        self.msg = post.find('div', 'postmsg').renderContents().decode('utf8')
         if post.find('div', 'postsignature postmsg'):
             self.sign = post.find('div', 'postsignature postmsg'
-                                  ).renderContents()
+                                  ).renderContents().decode('utf8')
         else:
             self.sign = ''
 

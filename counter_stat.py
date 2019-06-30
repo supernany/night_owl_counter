@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # pour faire les statistiques des posts de la journée passée sur le topic
-# nécessite python 2.4 minimum.
+# nécessite python 3 minimum.
 
 
 from counter_path import LOGFILE, STATFILE, LOGPATH, FILESPATH
@@ -79,7 +79,7 @@ def main(urlfile, statfile):
     msg = renderstats(stats)
     fs = open(statfile, 'w')
     fs.write('Statistiques de la journée passée')
-    fs.write(' (entre 5:00 et 4:59, heure de Paris) :\n')
+    fs.write(' (entre 5:00 et 4:59, heure de Paris) :\n')
     fs.write(msg)
     fs.write('\nLe décompte des points sera donné ultérieurement')
     fs.write(', lorsque la nuit aura fait le tour du monde.')

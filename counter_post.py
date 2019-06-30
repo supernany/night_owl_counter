@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 
 # auteur originel : Gabriel Pettier
 # fork : nany
 # license GPL V3 or later
 
 # pour poster les messages sur le forum
-# nécessite python 2.4 minimum.
+# nécessite python 3 minimum.
 
 from counter_path import FORUM_URL, POSTFILE, STATFILE, MYPATH, FILESPATH
 from counter_funclib import log
@@ -27,19 +27,19 @@ else:
     log('ENVOI DES COMPTES DE POINTS' + '\n')
 log('début\n                  ‾‾‾‾‾')
 
-sleep(5)
+sleep(2)
 
 browser = forum.getBrowser()
 
-sleep(2)
+sleep(1)
 
 forum.log_in(browser, FORUM_URL)
 
-sleep(2)
+sleep(1)
 
 forum.post(browser, pfile, urlfile)
 
-sleep(2)
+sleep(1)
 
 forum.log_out(browser, FORUM_URL)
 
