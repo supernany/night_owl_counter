@@ -11,10 +11,12 @@
 
 from counter_path import LOGFILE, POSTFILE, FILESPATH, FORUM_URL, TOPIC_URL
 from counter_funclib import log
+from counter_classlib import Post
 from time import sleep
 from sys import exit
 from os import access, F_OK
 from mechanicalsoup import *
+import re
 
 
 def getBrowser():
@@ -104,7 +106,7 @@ def isfirstpage(page):
 
 def islastpage(page):
 
-    num = numpage(page)
+    num = int(numpage(page))
     links = pagelinks(page)
     if len(links) > 0 and len(links) != 2:
         if int(links[-1]['href'].split('p=')[-1]) > int(num):
@@ -128,11 +130,12 @@ def search_TdCT(browser, f_url):
             int_p = int(str_p) - 10
             if int_p < 1:
                 int_p = 1
-            t_url = t_url.replace(str_p, str(int_p))
-            log(t_url)
+            t_url = t_url.replace('p=' + str_p, 'p=' + str(int_p))
             url = f_url + t_url
             if check_url(browser, url, f_url, t_url):
                 break
+            else:
+                url = ''
     if url == '':
         log('échec : arrêt du script')
         print('le script s’est arrêté suite à une erreur')
@@ -160,18 +163,20 @@ def check_url(browser, url, f_url, t_url):
         firstlinks = firstpost.findAll('a')
         if len(firstlinks) > 0:
             for link in firstlinks:
-                if 'topic des couche-tard' in str(
+                if 'couche-tard' in str(
                         link.renderContents().decode('utf8')):
                     return True
+                    break
         else:
             log('mauvaise url')
             return False
 
 
-def next(page, url):
+def next(browser, page, url):
 
     # si la page n’est pas la dernière,
     # le dernier lien pointe vers la page suivante
+    t_url=url
     if not islastpage(page):
         t_url = pagelinks(page)[-1]['href']
         url = FORUM_URL + t_url
@@ -181,12 +186,18 @@ def next(page, url):
             # auquel cas on renvoie le dernier lien fourni sur la page
         resp = page.find('p', 'postlink conr').renderContents().decode('utf8')
         if resp == 'Discussion fermée':
-            for postmsg in page.findAll('div', 'postmsg'):
-                if postmsg.find('a'):
-                    nextpage = postmsg.findAll('a')[-1]['href']
-                    t_url = nextpage.split('/')[-1]
-                    print(t_url)
-                    url = FORUM_URL + t_url
+            for p in page.findAll('div', id=re.compile('p+[0-9]')):
+                post = Post(p)
+                if 'href' in post.msg:
+                    links = post.msg.split('"')
+                    print(links)
+                    for l in links:
+                        if 'viewtopic' in l:
+                            t_url = l.split('/')[-1]
+            if 'viewtopic' in t_url:
+                url = FORUM_URL + t_url
+            else:
+                url = search_TdCT(browser, FORUM_URL)
             log('nouveau topic :')
         else:
             log('dernière page')

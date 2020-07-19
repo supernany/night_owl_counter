@@ -16,9 +16,9 @@ from dateutil.tz import *
 
 class IgnoreList:
 
-    def __init__(self, blackfile):
-        self.black = FILESPATH + blackfile
-        f = open(self.black, 'r')
+    def __init__(self, blockfile):
+        self.block = FILESPATH + blockfile
+        f = open(self.block, 'r')
         self.list = f.read().split('\n')[:-1]
         f.close()
 
@@ -35,8 +35,8 @@ class IgnoreList:
             self.Save()
 
     def Save(self):
-        log('sauvegarde de la blacklist')
-        f = open(self.black, 'w')
+        log('sauvegarde de la blocklist')
+        f = open(self.block, 'w')
         for stridname in self.list:
             f.write('%s\n' % stridname)
         f.close()

@@ -45,7 +45,7 @@ def main(urlfile, statfile):
     while True:
         log(url)
         if not forum.check_url(browser, url, FORUM_URL, t_url):
-            url = forum.search_TdCT(FORUM_URL)
+            url = forum.search_TdCT(browser, FORUM_URL)
         page = forum.getPage(browser, url)
         # parcourt les posts de la page
         for p in page.findAll('div', id=re.compile('p+[0-9]')):
@@ -60,7 +60,7 @@ def main(urlfile, statfile):
                 else:
                     stats[post.dt.strftime('%H')] += 1
 
-        new_url = forum.next(page, url)
+        new_url = forum.next(browser, page, url)
         if new_url == url:
             break
         else:
@@ -79,7 +79,7 @@ def main(urlfile, statfile):
     msg = renderstats(stats)
     fs = open(statfile, 'w')
     fs.write('Statistiques de la journée passée')
-    fs.write(' (entre 5:00 et 4:59, heure de Paris) :\n')
+    fs.write(' (entre 5:00:00 et 4:59:59, heure de Paris) :\n')
     fs.write(msg)
     fs.write('\nLe décompte des points sera donné ultérieurement')
     fs.write(', lorsque la nuit aura fait le tour du monde.')

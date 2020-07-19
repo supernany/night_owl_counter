@@ -9,6 +9,7 @@ ARC_PATH="$LOG_PATH/archives"
 FILES=$(ls "$LOG_PATH")
 ARCHIVE="$ARC_PATH/$LAST_MONTH.tar.gz"
 FILES_TO_ARCHIVE=$(echo "$FILES" | grep "$LAST_MONTH\-")
+echo "$FILES_TO_ARCHIVE"
 cd "$LOG_PATH" || exit
 tar -zcf "$ARCHIVE" $FILES_TO_ARCHIVE
 rm $FILES_TO_ARCHIVE
