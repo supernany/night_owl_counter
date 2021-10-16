@@ -123,10 +123,13 @@ class Post:
         self.url = post.find('h2').a['href']
         self.left = post.find('div', 'postleft')
         self.dt = DateTimePost(str(post.find('h2').a.renderContents()))
-        self.edit = post.find('p', 'postedit')
-        if self.edit:
+        self.stredit = post.find('p', 'postedit')
+        self.edit = None
+        if self.stredit:
+            self.stredit = self.stredit.find('em'
+                                             ).renderContents().decode('utf8')
             self.edit = DateTimePost(
-                            str(self.edit).split('(')[-1].split(')')[0])
+                            str(self.stredit).split('(')[-1].split(')')[0])
 
         # suppression des balises « quote »
         if post.find('div', 'quotebox'):
@@ -138,6 +141,7 @@ class Post:
                 code.extract()
 
         self.msg = post.find('div', 'postmsg').renderContents().decode('utf8')
+        self.links = post.find('div', 'postmsg').findAll('a')
         if post.find('div', 'postsignature postmsg'):
             self.sign = post.find('div', 'postsignature postmsg'
                                   ).renderContents().decode('utf8')

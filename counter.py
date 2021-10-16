@@ -32,6 +32,7 @@ from time import sleep
 from dateutil.tz import *
 import re
 import os
+import locale
 
 DEBUG = False
 TZPATH = '/usr/share/zoneinfo/'
@@ -65,11 +66,15 @@ def main(urlfile, files, blockfile):
     forum.log_in(browser, FORUM_URL)
     # vérification des pseudos de la blocklist
     for stridname in block.list:
-        oname = stridname.split(';')[1]
+        if stridname.split(';')[0] == '40383':
+            oname = stridname.split(';')[1] + ';'
+        else:
+            oname = stridname.split(';')[1]
         if stridname.split(';')[0] != '1714901':
             purl = FORUM_URL + 'profile.php?id=' + stridname.split(';')[0]
             page = forum.getPage(browser, purl)
             nname = str(page.find('dd').renderContents().decode('utf8'))
+            nname = HtmlToText(nname)
             nname = nname.split('\'')[-1]
             if nname != oname:
                 block.Del(stridname)
@@ -176,18 +181,15 @@ def main(urlfile, files, blockfile):
             post.localize(user.tz)
 
             # comptage si post entre 21:00 la veille et 04:59 ce jour
-            if (MIN < naive(post.dt) < MAX):
-                if post.edit and MIN < naive(post.edit) < MAX:
-                    user.Points(naive(post.edit).hour)
-                else:
-                    user.Points(naive(post.dt).hour)
-                # on ajoute l’entrée si le membre n’est pas blocklisté
-                if (str(user.id) + ';' + user.name) not in block.list:
-                    entries.addEntry(user)
             # ou si l’edit est  entre 21:00 la veille et 04:59 ce jour
-            elif post.edit and MIN < naive(post.edit) < MAX:
-                user.Points(naive(post.edit).hour)
-                if (str(user.id) + ';' + user.name) not in block.list:
+            if MIN < naive(post.dt) < MAX:
+                user.Points(naive(post.dt).hour)
+            if post.stredit and MIN < naive(post.edit) < MAX:
+                if user.name in post.stredit:
+                    user.Points(naive(post.edit).hour)
+            # on ajoute l’entrée si le membre n’est pas blocklisté
+            if (str(user.id) + ';' + user.name) not in block.list:
+                if user.points > 0:
                     entries.addEntry(user)
 
     if not DEBUG:
@@ -289,8 +291,21 @@ def main(urlfile, files, blockfile):
         fp.write('\nLes membres suivants sont ignorés :\n')
         fp.write('[code]\n')
         for stridname in block.list:
-            fp.write(stridname.split(';')[1] + '\n')
-        fp.write('[/code]')
+            if stridname.split(';')[0] == "40383":
+                fp.write(stridname.split(';')[1] + ';\n')
+            else:
+                fp.write(stridname.split(';')[1] + '\n')
+        fp.write('[/code]\n')
+    wiki = ' \n'
+    locale.setlocale(locale.LC_TIME, 'fr_FR.utf-8')
+    suf = datetime.date.today().strftime('%d_%B')
+    if int(suf.split('_')[0]) < 10:
+        suf = suf.replace('0', '')
+    if suf.split('_')[0] == '1':
+        suf = suf.replace('1', '1er')
+    wiki += '[url=https://fr.wikipedia.org/wiki/' + suf + ']'
+    wiki += suf.replace('_', ' ').replace('1er', '1[sup]er[/sup]') + '[/url]'
+    fp.write(wiki)
     fp.close()
 
     log('fin\n                  ‾‾‾\n')

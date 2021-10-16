@@ -78,11 +78,7 @@ def main(urlfile, statfile):
 
     msg = renderstats(stats)
     fs = open(statfile, 'w')
-    fs.write('Statistiques de la journée passée')
-    fs.write(' (entre 5:00:00 et 4:59:59, heure de Paris) :\n')
     fs.write(msg)
-    fs.write('\nLe décompte des points sera donné ultérieurement')
-    fs.write(', lorsque la nuit aura fait le tour du monde.')
     fs.close()
 
     forum.log_out(browser, FORUM_URL)

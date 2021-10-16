@@ -32,14 +32,13 @@ def getPage(browser, url):
         try:
             browser.open(url)
             page = browser.get_current_page()
-            # print(page.title.renderContents())
             if b'Error / FluxBB' in page.title.renderContents():
                 log('Erreur FluxBB')
                 sleep(10)
                 continue
             break
         except Exception as error:
-            log(str(error))
+            log('Erreur : ' + str(error))
             sleep(10)
     return page
 
@@ -100,8 +99,8 @@ def pagelinks(page):
 
 def isfirstpage(page):
 
-    num = numpage(page)
-    return (int(num) == 1)
+    num = int(numpage(page))
+    return (num == 1)
 
 
 def islastpage(page):
@@ -109,11 +108,13 @@ def islastpage(page):
     num = int(numpage(page))
     links = pagelinks(page)
     if len(links) > 0 and len(links) != 2:
-        if int(links[-1]['href'].split('p=')[-1]) > int(num):
+        if int(links[-1]['href'].split('p=')[-1]) > num:
             return False
         else:
             return True
-    elif len(links) == 2 and num > 1:
+    elif len(links) == 2 and num == 1:
+        return False
+    else:
         return True
 
 
@@ -127,7 +128,10 @@ def search_TdCT(browser, f_url):
         if td.find('span', 'stickytext'):
             t_url = td.findAll('a')[-1]['href']
             str_p = td.findAll('a')[-1].renderContents().decode('utf8')
-            int_p = int(str_p) - 10
+            try:
+                int_p = int(str_p) - 10
+            except Exception as error:
+                int_p = 1
             if int_p < 1:
                 int_p = 1
             t_url = t_url.replace('p=' + str_p, 'p=' + str(int_p))
@@ -159,14 +163,21 @@ def check_url(browser, url, f_url, t_url):
             firstpage = getPage(browser, urlfirst)
         firstpost = firstpage.find('div',
                                    'blockpost rowodd firstpost blockpost1')
-        firstpost = firstpost.find('div', 'postmsg')
-        firstlinks = firstpost.findAll('a')
-        if len(firstlinks) > 0:
-            for link in firstlinks:
-                if 'couche-tard' in str(
-                        link.renderContents().decode('utf8')):
-                    return True
-                    break
+        if firstpost == None:
+            firstpost = firstpage.find('div',
+                                       'blockpost rowodd blockpost1')
+        if firstpost != None:
+            firstpost = firstpost.find('div', 'postmsg')
+            firstlinks = firstpost.findAll('a')
+            if len(firstlinks) > 0:
+                for link in firstlinks:
+                    if 'couche-tard' in str(
+                            link.renderContents().decode('utf8')):
+                        return True
+                        break
+            else:
+                log('mauvaise url')
+                return False
         else:
             log('mauvaise url')
             return False
@@ -189,11 +200,10 @@ def next(browser, page, url):
             for p in page.findAll('div', id=re.compile('p+[0-9]')):
                 post = Post(p)
                 if 'href' in post.msg:
-                    links = post.msg.split('"')
-                    print(links)
-                    for l in links:
-                        if 'viewtopic' in l:
-                            t_url = l.split('/')[-1]
+                    for link in post.links:
+                        link = link['href']
+                        if 'viewtopic' in link:
+                            t_url = link.split('/')[-1]
             if 'viewtopic' in t_url:
                 url = FORUM_URL + t_url
             else:

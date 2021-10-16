@@ -54,21 +54,41 @@ def renderstats(stats):  # pour faire le graphique
                 '12': 0, '13': 0, '14': 0, '15': 0, '16': 0, '17': 0,
                 '18': 0, '19': 0, '20': 0, '21': 0, '22': 0, '23': 0}
     DayStats.update(stats)
-    code = '[code]\n'
+    Total = 0
+    Average = 0
+    msg = 'Statistiques de la journée passée'
+    msg += ' (entre 5:00:00 et 4:59:59, heure de Paris) :\n'
+    msg += '[code]\n'
     for k in sorted(DayStats.keys())[5:]:
-        code += '[' + k + 'h:' + ((int(k) < 9 and '0') or '')
-        code += ((int(k) == 23 and '00') or str(int(k)+1)) + 'h[ : '
-        code += '#' * DayStats[k]
-        code += ((DayStats[k] > 0 and ' ') or '')
-        code += str(DayStats[k]) + '\n'
+        Total += DayStats[k]
+        msg += '[' + k + 'h:' + ((int(k) < 9 and '0') or '')
+        msg += ((int(k) == 23 and '00') or str(int(k)+1)) + 'h[ : '
+        msg += '#' * DayStats[k]
+        msg += ((DayStats[k] > 0 and ' ') or '')
+        msg += str(DayStats[k]) + '\n'
     for k in sorted(DayStats.keys())[:5]:
-        code += '[' + k + 'h:' + '0' + str(int(k)+1) + 'h[ : '
-        code += '#' * DayStats[k]
-        code += ((DayStats[k] > 0 and ' ') or '')
-        code += str(DayStats[k]) + '\n'
-    code += '[/code]'
+        Total += DayStats[k]
+        msg += '[' + k + 'h:' + '0' + str(int(k)+1) + 'h[ : '
+        msg += '#' * DayStats[k]
+        msg += ((DayStats[k] > 0 and ' ') or '')
+        msg += str(DayStats[k]) + '\n'
+    msg += '[/code]\n'
+    Average = Total/24
+    Average = round(Average,3)
+    if Total >= 2:
+        msg += 'Total : ' + str(Total) + ' messages.\n'
+    else:
+        msg += 'Total : ' + str(Total) + ' message.\n'
+    msg += 'Moyenne : '
+    msg += str(Average).replace('.', ',')
+    if Average >= 2:
+        msg += ' messages par heure.\n'
+    else:
+        msg += ' message par heure.\n'
+    msg += '\nLe décompte des points sera donné ultérieurement'
+    msg += ', lorsque la nuit aura fait le tour du monde.'
 
-    return code
+    return msg
 
 
 def renderpost(_file):
@@ -92,14 +112,14 @@ def renderpost(_file):
             pass
         else:
             tmpRange = i
-        # et on ajoute la ligne avec le bon rang a l'entrée
+        # et on ajoute la ligne avec le bon rang à l'entrée
         if '\xe2\x80\xae' in scores[i-1]:
             msg += b'\xe2\x80\xac'.decode('utf8')
-        if Id == '7666':
+        if Id == '7666' or Id == '1730052':
             msg += '*** Vétéran des couche-tard, héros de la première'
             msg += ' guerre, invaincu avant retraite ***\n'
         msg += str(tmpRange + 1).rjust(5) + ')' + line
-        if Id == '7666':
+        if Id == '7666' or Id == '1730052':
             msg += '*' * 85 + '\n'
     msg += '[/code]\n'
 
