@@ -12,6 +12,8 @@ import os
 import sys
 from datetime import date
 
+TZPATH = '/usr/share/zoneinfo/'
+
 FORUM_URL = 'https://forum.ubuntu-fr.org/'
 TOPIC_URL = 'viewtopic.php'
 
@@ -35,7 +37,7 @@ if not os.path.exists(FILESPATH):
     if os.access(MYPATH, os.W_OK):
         os.mkdir(FILESPATH)
     else:
-        LOGPATH = os.getenv('HOME') + os.sep + 'counter_files/files'
+        FILESPATH = os.getenv('HOME') + os.sep + 'counter_files/files'
         if not os.path.exists(FILESPATH):
             os.makedirs(FILESPATH)
 FILESPATH += os.sep

@@ -14,6 +14,7 @@ from counter_path import FORUM_URL, TOPIC_URL
 from datetime import *
 from dateutil.tz import *
 import re
+import locale
 
 tzFrance = 'Europe/Paris'
 
@@ -47,7 +48,7 @@ def naive(dt):
     return datetime.combine(dt.date(), dt.time())
 
 
-def renderstats(stats):  # pour faire le graphique
+def renderstats(tfas, taas, stats):  # pour faire le graphique
 
     DayStats = {'00': 0, '01': 0, '02': 0, '03': 0, '04': 0, '05': 0,
                 '06': 0, '07': 0, '08': 0, '09': 0, '10': 0, '11': 0,
@@ -56,7 +57,26 @@ def renderstats(stats):  # pour faire le graphique
     DayStats.update(stats)
     Total = 0
     Average = 0
-    msg = 'Statistiques de la journée passée'
+    wiki = '\n'
+    locale.setlocale(locale.LC_TIME, 'fr_FR.utf-8')
+    suf = date.today().strftime('%d_%B')
+    if int(suf.split('_')[0]) < 10:
+        suf = suf.replace('0', '')
+    if suf.split('_')[0] == '1':
+        suf = suf.replace('1', '1er')
+    ltext = suf.replace('_', ' ').replace('1er', '1[sup]er[/sup]')
+    stext = ''
+    if suf == '4_mai':
+        ltext = 'May the 4[sup]th[/sup]'
+        stext = ' be with you.'
+    wiki += '[url=https://fr.wikipedia.org/wiki/' + suf + ']'
+    wiki += ltext + '[/url]' + stext
+    msg = 'PLOUF !\n'
+    msg += wiki + '\n\n'
+    if suf == '1er janvier':
+        msg += 'Bonne Année !\n\n'
+    msg += tfas + taas
+    msg += 'Statistiques de la journée passée'
     msg += ' (entre 5:00:00 et 4:59:59, heure de Paris) :\n'
     msg += '[code]\n'
     for k in sorted(DayStats.keys())[5:]:
@@ -115,11 +135,13 @@ def renderpost(_file):
         # et on ajoute la ligne avec le bon rang à l'entrée
         if '\xe2\x80\xae' in scores[i-1]:
             msg += b'\xe2\x80\xac'.decode('utf8')
-        if Id == '7666' or Id == '1730052':
+        if _file == FILESPATH + 'count_TdCT' and (Id == '7666' or 
+                                                  Id == '1730052'):
             msg += '*** Vétéran des couche-tard, héros de la première'
             msg += ' guerre, invaincu avant retraite ***\n'
         msg += str(tmpRange + 1).rjust(5) + ')' + line
-        if Id == '7666' or Id == '1730052':
+        if _file == FILESPATH + 'count_TdCT' and (Id == '7666' or 
+                                                  Id == '1730052'):
             msg += '*' * 85 + '\n'
     msg += '[/code]\n'
 

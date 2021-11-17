@@ -14,14 +14,10 @@
 
 # nécessite python 3.6 minimum et python3-dateutil.
 
-# le fichier './files/.counter_logins' doit contenir
-# le login du posteur sur la première ligne,
-# et son mot de passe sur la deuxième (cela et seulement cela).
-
 # fork : nany
 
 
-from counter_path import LOGFILE, POSTFILE, LOGPATH, FILESPATH
+from counter_path import LOGFILE, POSTFILE, LOGPATH, FILESPATH , TZPATH
 from counter_path import FORUM_URL, TOPIC_URL
 from counter_classlib import IgnoreList, Day, Score, User, Post
 from counter_funclib import DateTimePost, naive, renderpost
@@ -32,10 +28,8 @@ from time import sleep
 from dateutil.tz import *
 import re
 import os
-import locale
 
 DEBUG = False
-TZPATH = '/usr/share/zoneinfo/'
 
 
 def main(urlfile, files, blockfile):
@@ -70,15 +64,18 @@ def main(urlfile, files, blockfile):
             oname = stridname.split(';')[1] + ';'
         else:
             oname = stridname.split(';')[1]
-        if stridname.split(';')[0] != '1714901':
-            purl = FORUM_URL + 'profile.php?id=' + stridname.split(';')[0]
-            page = forum.getPage(browser, purl)
+        purl = FORUM_URL + 'profile.php?id=' + stridname.split(';')[0]
+        page = forum.getPage(browser, purl)
+        
+        try:
             nname = str(page.find('dd').renderContents().decode('utf8'))
-            nname = HtmlToText(nname)
-            nname = nname.split('\'')[-1]
-            if nname != oname:
-                block.Del(stridname)
-                block.Add(stridname.split(';')[0] + ';' + nname)
+        except AttributeError:
+            nname = page.find('div' , 'infldset').find('p')
+            nname = nname.renderContents().decode('utf8')
+            nname = str(nname).replace('Nom d\'utilisateur: ' , '')
+        if nname != oname:
+            block.Del(stridname)
+            block.Add(stridname.split(';')[0] + ';' + nname)
 
     log('parcours des pages')
     while True:
@@ -281,6 +278,7 @@ def main(urlfile, files, blockfile):
     msg = fp.read()
     fp.close()
     fp = open(POSTFILE, 'w')
+    fp.write('PLOUF !\n\n')
     fp.write('Points marqués la nuit passée :\n[code]\n')
     night_scores.sort(reverse=True)
     for score in night_scores:
@@ -296,16 +294,6 @@ def main(urlfile, files, blockfile):
             else:
                 fp.write(stridname.split(';')[1] + '\n')
         fp.write('[/code]\n')
-    wiki = ' \n'
-    locale.setlocale(locale.LC_TIME, 'fr_FR.utf-8')
-    suf = datetime.date.today().strftime('%d_%B')
-    if int(suf.split('_')[0]) < 10:
-        suf = suf.replace('0', '')
-    if suf.split('_')[0] == '1':
-        suf = suf.replace('1', '1er')
-    wiki += '[url=https://fr.wikipedia.org/wiki/' + suf + ']'
-    wiki += suf.replace('_', ' ').replace('1er', '1[sup]er[/sup]') + '[/url]'
-    fp.write(wiki)
     fp.close()
 
     log('fin\n                  ‾‾‾\n')

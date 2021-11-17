@@ -8,6 +8,10 @@
 # bibliothèque de fonctions pour naviguer dans le forum
 # nécessite python 3 minimum et python3-mechanicalsoup.
 
+# le fichier './files/.counter_logins' doit contenir
+# le login du posteur sur la première ligne,
+# et son mot de passe sur la deuxième (cela et seulement cela).
+
 
 from counter_path import LOGFILE, POSTFILE, FILESPATH, FORUM_URL, TOPIC_URL
 from counter_funclib import log

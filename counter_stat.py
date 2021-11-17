@@ -76,7 +76,44 @@ def main(urlfile, statfile):
         flog.write(url)
         flog.close()
 
-    msg = renderstats(stats)
+    fn = open(FILESPATH + 'nannif', 'r')
+    f_a = fn.readlines()
+    fn.close()
+    for d in f_a:
+        if datetime.date.today().strftime('%d/%m') in d:
+            data = d.strip('\n').split(' ')
+            break
+    fas = data[1].replace('_',' ')
+    if 'Joyeux' in fas:
+        tfas = fas + '\n'
+    else:
+        tfas = 'Selon [url=https://www.keskeces.fr/fete-a-souhaiter.html]'
+        tfas += 'Keskeces[/url], bonne fête aux ' + fas + '.\n'
+    aas = data[2:]
+    taas = ''
+    for i in range(len(aas)):
+        purl = FORUM_URL + 'profile.php?id=' + aas[i]
+        page = forum.getPage(browser, purl)
+        naas = str(page.find('dd').renderContents().decode('utf8'))
+        naas = naas.replace('_', ' ')
+        naas = naas.replace(' ', '_')
+        taas += ' ' + naas
+    sr = re.findall(r'[^ ]+', taas)
+    for i in range(len(sr)):
+        if i == len(sr) - 1:
+            taas += ' !'
+        elif i == len(sr) - 2:
+            taas = taas.replace(sr[i], sr[i] + ' et')
+        else:
+            taas = taas.replace(sr[i], sr[i] + ',')
+    if taas != '':
+        taas = 'Joyeux aniversaire' + taas +'\n\n'
+        taas = taas.replace('_', ' ')
+        taas = taas.replace(' ', '_')
+    else:
+        taas = '\n'
+
+    msg = renderstats(tfas, taas, stats)
     fs = open(statfile, 'w')
     fs.write(msg)
     fs.close()
