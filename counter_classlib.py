@@ -21,6 +21,7 @@ class IgnoreList:
         f = open(self.block, 'r')
         self.list = f.read().split('\n')[:-1]
         f.close()
+        log('blocklist chargée')
 
     def Add(self, stridname):
         if stridname not in self.list:
@@ -100,6 +101,9 @@ class User:
         self.posts = []
         self.tz = tzFrance
         self.points = 0
+        self.tp = 0
+        self.cr = False
+        self.mu = False
         if postleft.find('img'):
             self.avatar = postleft.find('img')['src'].split('?')[0]
         else:

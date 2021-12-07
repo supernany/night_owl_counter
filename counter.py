@@ -24,37 +24,33 @@ from counter_funclib import DateTimePost, naive, renderpost
 from counter_funclib import HtmlToText, tzFrance, log
 import counter_forum as forum
 import datetime
-from time import sleep
 from dateutil.tz import *
 import re
 import os
 
 DEBUG = False
+TODAY = datetime.date.today()
+# TODAY = datetime.date(2015, 8, 13)
+YESTERDAY = TODAY + datetime.timedelta(days=-1)
+MIN = datetime.datetime.combine(YESTERDAY, datetime.time(21, 0))
+MAX = datetime.datetime.combine(TODAY, datetime.time(5, 0))
 
 
 def main(urlfile, files, blockfile):
 
-    PUB_BLOCK = False
-    TODAY = datetime.date.today()
-    # TODAY = datetime.date(2015, 8, 13)
-    YESTERDAY = TODAY + datetime.timedelta(days=-1)
+    pub_block = False
     log('POINTS DE LA NUIT DU ' + YESTERDAY.strftime('%d/%m/%Y') + ' AU ' +
         TODAY.strftime('%d/%m/%Y') + '\n')
     log('début\n                  ‾‾‾‾‾')
-    MIN = datetime.datetime.combine(YESTERDAY, datetime.time(21, 0))
-    MINSTAT = datetime.datetime.combine(YESTERDAY, datetime.time(5, 0))
-    MAX = MAXSTAT = datetime.datetime.combine(TODAY, datetime.time(5, 0))
     logurl = LOGPATH + str(TODAY) + '_' + urlfile
     urlfile = FILESPATH + urlfile
     users = {}
     f = open(urlfile, 'r')
-    url = f.readline().strip('\n')
+    url = save_url = f.readline().strip('\n')
     t_url = url.split('/')[-1]
     f.close()
-    save_url = ''
     entries = Day()
     block = IgnoreList(blockfile)
-    log('blocklist chargée')
 
     browser = forum.getBrowser()
     forum.log_in(browser, FORUM_URL)
@@ -119,7 +115,7 @@ def main(urlfile, files, blockfile):
                 log('ajout éventuel de {0} à la blocklist'.format(user.name))
                 if stridname not in block.list:
                     log('demande de publication de la blocklist')
-                    PUB_BLOCK = True
+                    pub_block = True
                 block.Add(stridname)
             # recherche de « [letmepass] » dans le message
             if '[letmepass]' in post.msg.lower():
@@ -127,7 +123,7 @@ def main(urlfile, files, blockfile):
                     user.name, user.id))
                 if stridname in block.list:
                     log('demande de publication de la blocklist')
-                    PUB_BLOCK = True
+                    pub_block = True
                 block.Del(stridname)
             # recherche de « [razme] » dans le message
             if '[razme]' in post.msg.lower():
@@ -166,28 +162,64 @@ def main(urlfile, files, blockfile):
     forum.log_out(browser, FORUM_URL)
 
     save_dt = naive(datetime.datetime.now())
+    pcrime = []
+    moinsune = []
     for u in users:
+        toupil = []
         user = users[u]
         for post in user.posts:
             # récupère l’url d’où repartir le lendemain
-            if save_dt > naive(post.dt) >= MAXSTAT:
+            if save_dt > naive(post.dt) >= MAX:
                 save_dt = naive(post.dt)
                 save_url = FORUM_URL + post.url
 
             # traitement du décalage horaire
             post.localize(user.tz)
 
+            # si le membre n’est pas blocklisté
             # comptage si post entre 21:00 la veille et 04:59 ce jour
-            # ou si l’edit est  entre 21:00 la veille et 04:59 ce jour
-            if MIN < naive(post.dt) < MAX:
-                user.Points(naive(post.dt).hour)
-            if post.stredit and MIN < naive(post.edit) < MAX:
-                if user.name in post.stredit:
-                    user.Points(naive(post.edit).hour)
-            # on ajoute l’entrée si le membre n’est pas blocklisté
+            # ou si l’edit est entre 21:00 la veille et 04:59 ce jour
             if (str(user.id) + ';' + user.name) not in block.list:
-                if user.points > 0:
-                    entries.addEntry(user)
+                if MIN <= naive(post.dt) < MAX:
+                    user.Points(naive(post.dt).hour)
+                if post.stredit and MIN <= naive(post.edit) < MAX and \
+                   user.name in post.stredit:
+                    user.Points(naive(post.edit).hour)
+                # tout pile
+                if "00:00" in naive(post.dt).strftime('%M:%S') and \
+                   MIN <= naive(post.dt) < MAX:
+                    toupil.append([user.name, '/' + post.url])
+            # crime parfait
+            if "00:00:00" in naive(post.dt).strftime('%H:%M:%S') and \
+               (str(user.id) + ';' + user.name) not in block.list and \
+               MIN <= naive(post.dt) < MAX:
+                user.cr = True
+                pcrime.append([user.name, '/' + post.url])
+            # moins une
+            if "04:59:59" in naive(post.dt).strftime('%H:%M:%S') and \
+               (str(user.id) + ';' + user.name) not in block.list and \
+               MIN <= naive(post.dt) < MAX:
+                user.mu = True
+                moinsune.append([user.name, '/' + post.url])
+        # comptage des points des tout pile
+        if toupil != []:
+            user.tp = 1
+            s = sorted(toupil, key=lambda x: x[0]+x[1])
+            prec = ['', '']
+            while s:
+                i = s.pop()
+                if i[0] == prec[0]:
+                    user.tp += 1
+                prec = i
+            user.points += int(user.tp/2)
+        # points du crime parfait
+        if user.cr:
+            user.points += 2
+        # points du moins une
+        if user.mu:
+            user.points += 5
+        if user.points > 0:
+            entries.addEntry(user)
 
     if not DEBUG:
         log('sauvegarde de l\'url')
@@ -273,19 +305,46 @@ def main(urlfile, files, blockfile):
         renderpost(FILESPATH + scorefile)
     if TODAY.day == 2:
         log('demande de publication de la blocklist')
-        PUB_BLOCK = True
+        pub_block = True
     fp = open(POSTFILE, 'r')
     msg = fp.read()
     fp.close()
     fp = open(POSTFILE, 'w')
     fp.write('PLOUF !\n\n')
-    fp.write('Points marqués la nuit passée :\n[code]\n')
+    fp.write('[url=/viewtopic.php?pid=22511619#p22511619]')
+    fp.write('Rappel des règles.[/url]\n\n')
+    for u in users:
+        user = users[u]
+        if user.tp == 1:
+            fp.write('Bravo ' + user.name + ' pour ton tout pile ')
+            fp.write('(message à l’heure juste) ! Avec un autre tout pile, ')
+            fp.write('tu aurais pu avoir 1 point bonus supplémentaire.\n')
+        elif user.tp > 1:
+            tpp = int(user.tp/2)
+            fp.write('Bravo ' + user.name + ' pour tes ' + str(user.tp) + ' ')
+            fp.write('tout pile (messages à l’heure juste) ! Tu gagnes ')
+            fp.write(str(tpp) + ' ')
+            if tpp == 1:
+                fp.write('point bonus supplémentaire.\n')
+            else:
+                fp.write('points bonus supplémentaires.\n')
+    if pcrime != []:
+        for u in pcrime:
+            fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
+            fp.write(']ton crime parfait (message à minuit pile)[/url] ! ')
+            fp.write('Tu gagnes 2 points bonus supplémentaires.\n')
+    if moinsune != []:
+        for u in moinsune:
+            fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
+            fp.write(']ton message à 5h moins une seconde[/url] ! ')
+            fp.write('Tu gagnes 5 points bonus supplémentaires.\n')
+    fp.write('\nPoints marqués la nuit passée :\n[code]\n')
     night_scores.sort(reverse=True)
     for score in night_scores:
         fp.write(str(score.num).rjust(3) + '    ' + score.name + '\n')
     fp.write('[/code]\n')
     fp.write(msg)
-    if PUB_BLOCK:
+    if pub_block:
         fp.write('\nLes membres suivants sont ignorés :\n')
         fp.write('[code]\n')
         for stridname in block.list:

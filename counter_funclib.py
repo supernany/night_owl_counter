@@ -33,14 +33,15 @@ def DateTimePost(dt):
         d = date.today()
     else:
         d = datetime.strptime(dt[0], '%d/%m/%Y').date()
-    t = time(int(dt[-1].split(':')[0]), int(dt[-1].split(':')[1]))
     dyear = int(d.strftime('%Y'))
     dmonth = int(d.strftime('%m'))
     dday = int(d.strftime('%d'))
     thour = int(dt[-1].split(':')[0])
     tmin = int(dt[-1].split(':')[1])
+    tsec = int(dt[-1].split(':')[2])
 
-    return datetime(dyear, dmonth, dday, thour, tmin, tzinfo=gettz('UTC'))
+    return datetime(
+           dyear, dmonth, dday, thour, tmin, tsec, tzinfo=gettz('UTC'))
 
 
 def naive(dt):
