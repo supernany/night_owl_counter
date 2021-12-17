@@ -315,7 +315,7 @@ def main(urlfile, files, blockfile):
     fp.write('Rappel des règles.[/url]\n\n')
     for u in users:
         user = users[u]
-        if user.tp == 1:
+        if user.tp == 1 and not user.cr:
             fp.write('Bravo ' + user.name + ' pour ton tout pile ')
             fp.write('(message à l’heure juste) ! Avec un autre tout pile, ')
             fp.write('tu aurais pu avoir 1 point bonus supplémentaire.\n')
@@ -329,10 +329,16 @@ def main(urlfile, files, blockfile):
             else:
                 fp.write('points bonus supplémentaires.\n')
     if pcrime != []:
-        for u in pcrime:
-            fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
+        for c in pcrime:
+            fp.write('Bravo ' + c[0] + ' pour [url=' + c[1])
             fp.write(']ton crime parfait (message à minuit pile)[/url] ! ')
             fp.write('Tu gagnes 2 points bonus supplémentaires.\n')
+            for u in users:
+                user = users[u]
+                if c[0] == user.name and user.tp == 1:
+                    fp.write('Avec un autre tout pile, tu aurais pu ')
+                    fp.write('accumuler les points correspondants plus ')
+                    fp.write('1 point bonus supplémentaire.\n')
     if moinsune != []:
         for u in moinsune:
             fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
