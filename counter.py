@@ -344,7 +344,7 @@ def main(urlfile, files, blockfile):
             fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
             fp.write(']ton message à 5h moins une seconde[/url] ! ')
             fp.write('Tu gagnes 5 points bonus supplémentaires.\n')
-    if night_scores != []
+    if night_scores != []:
         fp.write('\nPoints marqués la nuit passée :\n[code]\n')
         night_scores.sort(reverse=True)
         for score in night_scores:
