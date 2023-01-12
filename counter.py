@@ -30,7 +30,7 @@ import os
 
 DEBUG = False
 TODAY = datetime.date.today()
-# TODAY = datetime.date(2015, 8, 13)
+# TODAY = datetime.date(2022, 12, 27)
 YESTERDAY = TODAY + datetime.timedelta(days=-1)
 MIN = datetime.datetime.combine(YESTERDAY, datetime.time(21, 0))
 MAX = datetime.datetime.combine(TODAY, datetime.time(5, 0))
@@ -344,11 +344,12 @@ def main(urlfile, files, blockfile):
             fp.write('Bravo ' + u[0] + ' pour [url=' + u[1])
             fp.write(']ton message à 5h moins une seconde[/url] ! ')
             fp.write('Tu gagnes 5 points bonus supplémentaires.\n')
-    fp.write('\nPoints marqués la nuit passée :\n[code]\n')
-    night_scores.sort(reverse=True)
-    for score in night_scores:
-        fp.write(str(score.num).rjust(3) + '    ' + score.name + '\n')
-    fp.write('[/code]\n')
+    if night_scores != []
+        fp.write('\nPoints marqués la nuit passée :\n[code]\n')
+        night_scores.sort(reverse=True)
+        for score in night_scores:
+            fp.write(str(score.num).rjust(3) + '    ' + score.name + '\n')
+        fp.write('[/code]\n')
     fp.write(msg)
     if pub_block:
         fp.write('\nLes membres suivants sont ignorés :\n')
